@@ -1,0 +1,21 @@
+{
+  "name": "@movie-apps/shared-ui",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Shared package for movie apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/react": "^19.1.2",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
