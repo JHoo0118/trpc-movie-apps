@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TrpcController } from './trpc/trpc.controller';
+import { TrpcModule } from './trpc/trpc.module';
 
 @Module({
   imports: [
@@ -19,8 +19,9 @@ import { TrpcController } from './trpc/trpc.controller';
         DATABASE_URL: Joi.string().required(),
       }),
     }),
+    TrpcModule,
   ],
-  controllers: [AppController, TrpcController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

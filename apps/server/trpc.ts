@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 import { Request, Response } from 'express';
 
 // Context type definition
-interface ContextType {
+export interface ContextType {
   req: Request;
   res: Response;
   //   user: User | null;
@@ -11,7 +11,7 @@ interface ContextType {
 }
 
 // Context available to all procedures
-type Context = Awaited<ReturnType<typeof createContext>>;
+export type Context = Awaited<ReturnType<typeof createContext>>;
 
 export function createContext({
   req,
@@ -23,22 +23,22 @@ export function createContext({
   return {
     req,
     res,
+    // user: null as CurrentUser | null,
+    // accessToken: null as string | null,
   };
 }
 
 // Initialize tRPC
-export const t = initTRPC.context<Context>().create({
+const t = initTRPC.context<Context>().create({
   errorFormatter(opts) {
     const { shape, error } = opts;
     return {
       ...shape,
       data: {
         ...shape.data,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         zodError:
           error.code === 'BAD_REQUEST' && error.cause instanceof ZodError
-            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              error.cause.flatten()
+            ? error.cause.flatten()
             : null,
       },
     };
