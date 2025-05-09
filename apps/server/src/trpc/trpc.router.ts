@@ -1,11 +1,16 @@
 import { initTRPC } from '@trpc/server';
 import { ZodError } from 'zod';
 import { Request, Response } from 'express';
+import { createUserRouter } from '@/user/user.router';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '@/drizzle/schema/schema';
+// import { genreRouter } from './features/genre/router';
 
 // Context type definition
 export interface ContextType {
   req: Request;
   res: Response;
+  db: NodePgDatabase<typeof schema>;
   //   user: User | null;
   //   accessToken: string | null;
 }
@@ -16,13 +21,16 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 export function createContext({
   req,
   res,
+  db,
 }: {
   req: Request;
   res: Response;
+  db: NodePgDatabase<typeof schema>;
 }): ContextType {
   return {
     req,
     res,
+    db,
     // user: null as CurrentUser | null,
     // accessToken: null as string | null,
   };
@@ -68,10 +76,22 @@ export const protectedProcedure = t.procedure.use(
   authMiddleware,
 ) as typeof t.procedure;
 
-export const appRouter = router({
-  hello: publicProcedure.query(() => {
-    return 'Hello, world!';
-  }),
-});
+export const createAppRouter = (db: NodePgDatabase<typeof schema>) =>
+  router({
+    hello: publicProcedure.query(() => {
+      return 'Hello, world!';
+    }),
+    user: createUserRouter(db),
+    // 여기에 다른 라우터도 연결 가능
+  });
 
-export type AppRouter = typeof appRouter;
+// export const appRouter = router({
+//   hello: publicProcedure.query(() => {
+//     return 'Hello, world!';
+//   }),
+//   // genre: genreRouter,
+//   user: createUserRouter(db),
+// });
+
+export type AppRouter = ReturnType<typeof createAppRouter>;
+// export type AppRouter = typeof appRouter;

@@ -1,18 +1,18 @@
-version: "3.8"
+version: '3.8'
 
 services:
   postgres:
     image: postgres:16
-    container_name: postgres-workflow
+    container_name: postgres-movie-apps
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "7432:5432"
+      - '7432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_move_apps_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  postgres_move_apps_data:

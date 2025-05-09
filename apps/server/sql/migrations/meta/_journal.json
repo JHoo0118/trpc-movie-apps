@@ -15,6 +15,13 @@
       "when": 1746627222021,
       "tag": "0001_jazzy_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746709414951,
+      "tag": "0002_magenta_yellowjacket",
+      "breakpoints": true
     }
   ]
 }
