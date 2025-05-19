@@ -1,11 +1,11 @@
-// import { publicProcedure, router } from '../../trpc';
 // import { z } from 'zod';
-// import { genreSelectSchema } from './model';
 // import { TRPCError } from '@trpc/server';
-// import { genresTable } from './model';
-// import { genreValidationSchema } from '@movie-apps/schema/genre';
+// import { genreValidationSchema } from '@movie-apps/schema';
 // import { DEFAULT_LIMIT } from '../../src/utils/constants';
-// import db from '../../database';
+// import { genreSelectSchema } from '@/drizzle/schema/genre.schema';
+// import * as schema from '@/drizzle/schema/schema';
+// import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+// import { publicProcedure, router } from '@/trpc/trpc.router';
 
 // type Cursor = {
 //   id: number;
@@ -29,109 +29,221 @@
 //   };
 // };
 
-// export const genreRouter = router({
-//   list: publicProcedure
-//     .input(
-//       z.object({
-//         limit: z.number().optional(),
-//         cursor: z.string().optional(),
-//         isPreviousPage: z.boolean().optional(),
-//       }),
-//     )
-//     .output(
-//       z.object({
-//         genres: z.array(
-//           genreSelectSchema.extend({
-//             id: z.number(),
-//             name: z.string(),
-//             createdAt: z.date(),
-//             updatedAt: z.date(),
-//           }),
-//         ),
-//         nextCursor: z.string().optional(),
-//         previousCursor: z.string().optional(),
-//       }),
-//     )
-//     .query(async ({ input }) => {
-//       const limit = input?.limit ?? DEFAULT_LIMIT;
-//       const isPreviousPage = input.isPreviousPage ?? false;
+// export const createGenreRouter = (db: NodePgDatabase<typeof schema>) => {
+//   return router({
+//     list: publicProcedure
+//       .input(
+//         z.object({
+//           limit: z.number().optional(),
+//           cursor: z.string().optional(),
+//           isPreviousPage: z.boolean().optional(),
+//         }),
+//       )
+//       .output(
+//         z.object({
+//           genres: z.array(
+//             genreSelectSchema.extend({
+//               id: z.number(),
+//               name: z.string(),
+//               createdAt: z.date(),
+//               updatedAt: z.date(),
+//             }),
+//           ),
+//           nextCursor: z.string().optional(),
+//           previousCursor: z.string().optional(),
+//         }),
+//       )
+//       .query(async ({ input }) => {
+//         const limit = input?.limit ?? DEFAULT_LIMIT;
+//         const isPreviousPage = input.isPreviousPage ?? false;
 
-//       let query = db.query.genresTable.findMany({
-//         limit,
-//         orderBy: (genres, { desc, asc }) => [
-//           isPreviousPage ? asc(genres.createdAt) : desc(genres.createdAt),
-//         ],
-//       });
-
-//       if (input.cursor) {
-//         const cursor = decodeCursor(input.cursor);
-//         query = db.query.genresTable.findMany({
+//         let query = db.query.genresTable.findMany({
 //           limit,
-//           where: (genres, { and, gt, lt, eq }) =>
-//             and(
-//               isPreviousPage
-//                 ? gt(genres.createdAt, cursor.createdAt)
-//                 : lt(genres.createdAt, cursor.createdAt),
-//               eq(genres.id, cursor.id),
-//             ),
 //           orderBy: (genres, { desc, asc }) => [
 //             isPreviousPage ? asc(genres.createdAt) : desc(genres.createdAt),
 //           ],
 //         });
-//       }
 
-//       const results = await query;
+//         if (input.cursor) {
+//           const cursor = decodeCursor(input.cursor);
+//           query = db.query.genresTable.findMany({
+//             limit,
+//             where: (genres, { and, gt, lt, eq }) =>
+//               and(
+//                 isPreviousPage
+//                   ? gt(genres.createdAt, cursor.createdAt)
+//                   : lt(genres.createdAt, cursor.createdAt),
+//                 eq(genres.id, cursor.id),
+//               ),
+//             orderBy: (genres, { desc, asc }) => [
+//               isPreviousPage ? asc(genres.createdAt) : desc(genres.createdAt),
+//             ],
+//           });
+//         }
 
-//       const nextCursor =
-//         results.length > 0
-//           ? encodeCursor({
-//               id: results[results.length - 1].id,
-//               createdAt: results[results.length - 1].createdAt,
-//             })
-//           : undefined;
+//         const results = await query;
 
-//       const previousCursor =
-//         results.length > 0
-//           ? encodeCursor({
-//               id: results[0].id,
-//               createdAt: results[0].createdAt,
-//             })
-//           : undefined;
+//         const nextCursor =
+//           results.length > 0
+//             ? encodeCursor({
+//                 id: results[results.length - 1].id,
+//                 createdAt: results[results.length - 1].createdAt,
+//               })
+//             : undefined;
 
-//       return {
-//         genres: results,
-//         nextCursor: isPreviousPage ? previousCursor : nextCursor,
-//         previousCursor: isPreviousPage ? nextCursor : previousCursor,
-//       };
-//     }),
-//   byId: publicProcedure
-//     .input(z.object({ id: z.number() }))
-//     .output(genreSelectSchema)
-//     .query(async ({ input }) => {
-//       const genre = await db.query.genresTable.findFirst({
-//         where: (genres, { eq }) => eq(genres.id, input.id),
-//       });
+//         const previousCursor =
+//           results.length > 0
+//             ? encodeCursor({
+//                 id: results[0].id,
+//                 createdAt: results[0].createdAt,
+//               })
+//             : undefined;
 
-//       if (!genre) {
-//         throw new TRPCError({ code: 'NOT_FOUND', message: 'Genre not found' });
-//       }
+//         return {
+//           genres: results,
+//           nextCursor: isPreviousPage ? previousCursor : nextCursor,
+//           previousCursor: isPreviousPage ? nextCursor : previousCursor,
+//         };
+//       }),
+//     byId: publicProcedure
+//       .input(z.object({ id: z.number() }))
+//       .output(genreSelectSchema)
+//       .query(async ({ input }) => {
+//         const genre = await db.query.genresTable.findFirst({
+//           where: (genres, { eq }) => eq(genres.id, input.id),
+//         });
 
-//       const validatedGenre = genreSelectSchema.parse(genre);
-//       return validatedGenre;
-//     }),
+//         if (!genre) {
+//           throw new TRPCError({
+//             code: 'NOT_FOUND',
+//             message: 'Genre not found',
+//           });
+//         }
 
-//   //   add: protectedProcedure
-//   add: publicProcedure
-//     .input(genreValidationSchema)
-//     .mutation(async ({ ctx, input }) => {
-//       console.log(ctx);
-//       const genre = await db
-//         .insert(genresTable)
-//         .values({
-//           name: input.name,
-//         })
-//         .returning();
+//         const validatedGenre = genreSelectSchema.parse(genre);
+//         return validatedGenre;
+//       }),
 
-//       return genre[0];
-//     }),
-// });
+//     //   add: protectedProcedure
+//     add: publicProcedure
+//       .input(genreValidationSchema)
+//       .mutation(async ({ ctx, input }) => {
+//         console.log(ctx);
+//         const genre = await db
+//           .insert(schema.genresTable)
+//           .values({
+//             name: input.name,
+//           })
+//           .returning();
+
+//         return genre[0];
+//       }),
+//   });
+// };
+
+// // export const genreRouter = router({
+// //   list: publicProcedure
+// //     .input(
+// //       z.object({
+// //         limit: z.number().optional(),
+// //         cursor: z.string().optional(),
+// //         isPreviousPage: z.boolean().optional(),
+// //       }),
+// //     )
+// //     .output(
+// //       z.object({
+// //         genres: z.array(
+// //           genreSelectSchema.extend({
+// //             id: z.number(),
+// //             name: z.string(),
+// //             createdAt: z.date(),
+// //             updatedAt: z.date(),
+// //           }),
+// //         ),
+// //         nextCursor: z.string().optional(),
+// //         previousCursor: z.string().optional(),
+// //       }),
+// //     )
+// //     .query(async ({ input }) => {
+// //       const limit = input?.limit ?? DEFAULT_LIMIT;
+// //       const isPreviousPage = input.isPreviousPage ?? false;
+
+// //       let query = db.query.genresTable.findMany({
+// //         limit,
+// //         orderBy: (genres, { desc, asc }) => [
+// //           isPreviousPage ? asc(genres.createdAt) : desc(genres.createdAt),
+// //         ],
+// //       });
+
+// //       if (input.cursor) {
+// //         const cursor = decodeCursor(input.cursor);
+// //         query = db.query.genresTable.findMany({
+// //           limit,
+// //           where: (genres, { and, gt, lt, eq }) =>
+// //             and(
+// //               isPreviousPage
+// //                 ? gt(genres.createdAt, cursor.createdAt)
+// //                 : lt(genres.createdAt, cursor.createdAt),
+// //               eq(genres.id, cursor.id),
+// //             ),
+// //           orderBy: (genres, { desc, asc }) => [
+// //             isPreviousPage ? asc(genres.createdAt) : desc(genres.createdAt),
+// //           ],
+// //         });
+// //       }
+
+// //       const results = await query;
+
+// //       const nextCursor =
+// //         results.length > 0
+// //           ? encodeCursor({
+// //               id: results[results.length - 1].id,
+// //               createdAt: results[results.length - 1].createdAt,
+// //             })
+// //           : undefined;
+
+// //       const previousCursor =
+// //         results.length > 0
+// //           ? encodeCursor({
+// //               id: results[0].id,
+// //               createdAt: results[0].createdAt,
+// //             })
+// //           : undefined;
+
+// //       return {
+// //         genres: results,
+// //         nextCursor: isPreviousPage ? previousCursor : nextCursor,
+// //         previousCursor: isPreviousPage ? nextCursor : previousCursor,
+// //       };
+// //     }),
+// //   byId: publicProcedure
+// //     .input(z.object({ id: z.number() }))
+// //     .output(genreSelectSchema)
+// //     .query(async ({ input }) => {
+// //       const genre = await db.query.genresTable.findFirst({
+// //         where: (genres, { eq }) => eq(genres.id, input.id),
+// //       });
+
+// //       if (!genre) {
+// //         throw new TRPCError({ code: 'NOT_FOUND', message: 'Genre not found' });
+// //       }
+
+// //       const validatedGenre = genreSelectSchema.parse(genre);
+// //       return validatedGenre;
+// //     }),
+
+// //   //   add: protectedProcedure
+// //   add: publicProcedure
+// //     .input(genreValidationSchema)
+// //     .mutation(async ({ ctx, input }) => {
+// //       console.log(ctx);
+// //       const genre = await db
+// //         .insert(genresTable)
+// //         .values({
+// //           name: input.name,
+// //         })
+// //         .returning();
+
+// //       return genre[0];
+// //     }),
+// // });
